@@ -1,0 +1,30 @@
+# Datos del cliente — NUNCA versionar
+inputs/icp.md
+inputs/blacklist.csv
+inputs/*.csv
+outputs/
+data/cache/
+data/raw/
+data/enriched/
+
+# Credenciales
+.env
+.env.local
+*.key
+*.pem
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# Sistema
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
