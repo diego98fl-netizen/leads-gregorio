@@ -1,0 +1,356 @@
+# ICP — Gregario Leads Pipeline
+# Cliente: Gregario
+# Fecha: 2026-04-27
+#
+# Este archivo describe el ICP (Ideal Customer Profile) en un formato
+# estructurado consumible por el motor de scoring.
+# NO contiene datos personales de leads — solo reglas y parámetros.
+
+meta:
+  version: "1.0"
+  fecha: "2026-04-27"
+  cliente: "Gregario"
+  descripcion: >
+    Pipeline de prospección B2B para canal Horeca/Foodservice en México.
+    Empresas que VENDEN al canal Horeca, no las empresas Horeca en sí.
+
+# ---------------------------------------------------------------------------
+# Geografía
+# ---------------------------------------------------------------------------
+geografia:
+  beta:
+    prioridad_1:
+      ciudad: "CDMX"
+      alcance: "todas las alcaldías relevantes"
+    prioridad_2:
+      ciudad: "Guadalajara"
+      alcance: "Zona Metropolitana"
+    prioridad_3:
+      ciudad: "Monterrey"
+      alcance: "Zona Metropolitana"
+  cobertura_post_beta: "México (nacional)"
+  nota: >
+    El cliente pidió cobertura nacional. Durante la beta acotamos a las
+    tres ciudades anteriores para iterar rápido y garantizar calidad.
+    Decisión documentada en DECISIONS.md.
+
+# ---------------------------------------------------------------------------
+# Tamaño mínimo
+# ---------------------------------------------------------------------------
+tamano:
+  empleados_minimos: 50
+  estratos_denue:
+    - "51-100"
+    - "101-250"
+    - "251+"
+  senal_fuerte_adicional:
+    descripcion: "Equipo comercial en terreno"
+    ejecutivos_minimos: 10
+
+# ---------------------------------------------------------------------------
+# Segmentos beta — orden de prioridad para discover.py
+# ---------------------------------------------------------------------------
+segmentos_beta:
+  - id: "P1_fabricantes_foodservice"
+    prioridad: 1
+    nombre: "Fabricantes con canal Foodservice"
+    descripcion: >
+      Fabricantes de alimentos, bebidas, proteínas, lácteos, congelados,
+      bases, harinas, café, panadería que venden al canal Horeca/foodservice.
+    scian:
+      - "3111"
+      - "3112"
+      - "3113"
+      - "3114"
+      - "3115"
+      - "3116"
+      - "3117"
+      - "3118"
+      - "3119"
+      - "3121"
+      - "3122"
+    senal_clave: "Gerente Foodservice o Gerente HORECA en estructura comercial"
+    incluir_en_beta: true
+
+  - id: "P2_distribuidores_mayoristas"
+    prioridad: 2
+    nombre: "Distribuidores mayoristas de alimentos y bebidas"
+    descripcion: >
+      Distribuyen (sin fabricar necesariamente) al canal Horeca y tradicional.
+    scian:
+      - "4311"
+      - "4312"
+      - "4319"
+    senal_clave: "Rutas de distribución + ejecutivos visibles en LinkedIn o web"
+    requisitos_adicionales:
+      - "+10 ejecutivos de ventas en terreno confirmados"
+    incluir_en_beta: true
+
+  - id: "P3_proveedores_insumos"
+    prioridad: 3
+    nombre: "Proveedores de insumos a restaurantes"
+    descripcion: >
+      Packaging foodservice, maquinaria de cocina, servicios de limpieza
+      industrial, reciclaje de aceite, equipamiento.
+    scian:
+      - "4611"
+      - "4619"
+      - "8111"
+      - "8112"
+    requisitos_adicionales:
+      - "+50 empleados"
+      - "Área comercial visible"
+    incluir_en_beta: true
+
+  - id: "F2_universo_extendido"
+    prioridad: 99
+    nombre: "Universo extendido (Fase 2, post-beta)"
+    descripcion: >
+      Software para restaurantes, cerveceras artesanales, comercio minorista
+      de alimentos, exportadores puros.
+    incluir_en_beta: false
+
+# ---------------------------------------------------------------------------
+# Parámetros iniciales para discover.py (primera corrida)
+# ---------------------------------------------------------------------------
+discover_params_iniciales:
+  ciudad: "CDMX"
+  estratos: ["51-100", "101-250", "251+"]
+  scian:
+    - "3115"  # proteína / lácteos
+    - "3121"  # bebidas no alcohólicas
+    - "3116"  # panificación
+    - "3114"  # conservas / congelados
+  limite_empresas: 50
+  validacion_humana_antes_de_escalar: true
+
+# ---------------------------------------------------------------------------
+# Rubros — universo completo
+# ---------------------------------------------------------------------------
+rubros:
+  incluidos:
+    - "Fabricantes de alimentos y bebidas"
+    - "Distribuidores y comercio al por mayor de alimentos y bebidas"
+    - "Proveedores de insumos a restaurantes (packaging, maquinaria)"
+    - "Servicios a restaurantes (limpieza, reciclaje de aceite)"
+    - "Software para restaurantes y agregadores de demanda"
+    - "Distribuidores puros con fuerza de ventas confirmada"
+  excluidos:
+    - "Venta industrial pura"
+    - "Tiendas retail / canal moderno"
+    - "Exportación pura"
+    - "Eventos"
+    - "Marcas delicatessen o muy exclusivas"
+    - "Hoteles y restaurantes como cliente final"
+
+# ---------------------------------------------------------------------------
+# Señales de scoring — empresa
+# ---------------------------------------------------------------------------
+senales_empresa:
+  positivas:
+    - codigo: "venta_b2b_atomizada"
+      descripcion: "Venta B2B atomizada (muchos clientes pequeños/medianos)"
+      peso: 15
+    - codigo: "presencia_horeca_y_tradicional"
+      descripcion: "Presencia en canal Horeca/foodservice Y tradicional"
+      peso: 15
+    - codigo: "equipo_terreno_activo"
+      descripcion: "Equipo de ventas en terreno activo (+10 ejecutivos)"
+      peso: 20
+    - codigo: "venta_directa_o_distribuidores_propios"
+      descripcion: "Venta directa o a través de distribuidores propios"
+      peso: 10
+    - codigo: "web_activa_clientes"
+      descripcion: "Web activa con sección de clientes o casos de uso"
+      peso: 5
+    - codigo: "ofertas_laborales_comerciales"
+      descripcion: "Ofertas laborales de cargos comerciales activas"
+      peso: 10
+    - codigo: "gerente_foodservice_horeca"
+      descripcion: "Gerente Foodservice o Gerente HORECA en estructura"
+      peso: 25
+
+  negativas:
+    - codigo: "solo_exportacion_retail"
+      descripcion: "Solo exportación o retail/canal moderno"
+      peso: -30
+    - codigo: "sin_estructura_comercial"
+      descripcion: "Sin estructura comercial visible"
+      peso: -25
+    - codigo: "menos_50_empleados"
+      descripcion: "Menos de 50 empleados"
+      peso: -100
+      descarte_automatico: true
+    - codigo: "sin_presencia_digital"
+      descripcion: "Sin presencia digital activa"
+      peso: -15
+    - codigo: "venta_inbound_pura"
+      descripcion: "Venta 100% inbound o sin fuerza de ventas en terreno"
+      peso: -25
+
+# ---------------------------------------------------------------------------
+# Tiers de cargos — contacto
+# ---------------------------------------------------------------------------
+contactos_tiers:
+  tier_1:
+    peso: 50
+    descripcion: "Decisor comercial directo (prioridad máxima)"
+    cargos:
+      - "Gerente Comercial"
+      - "Commercial Manager"
+      - "Gerente de Ventas"
+      - "Sales Manager"
+      - "Director Comercial"
+      - "Commercial Director"
+      - "Director de Ventas"
+      - "Sales Director"
+      - "Subgerente Comercial"
+      - "Subgerente de Ventas"
+      - "Country Manager México"
+      - "Gerente Foodservice"
+      - "Gerente HORECA"
+      - "Gerente Canal Tradicional"
+      - "Gerente de Distribuidores"
+
+  tier_2:
+    peso: 30
+    descripcion: "Decisor adyacente (si no aparece Tier 1)"
+    cargos:
+      - "Gerente Regional de Ventas"
+      - "Gerente de Marketing"
+      - "Gerente de Desarrollo de Nuevos Negocios"
+      - "Business Development Manager"
+      - "Gerente de Growth"
+      - "Gerente de Inteligencia de Negocios"
+      - "Gerente de TI"
+      - "Gerente de Transformación Digital"
+      - "Gerente de Trade Marketing"
+      - "Jefe de Ventas"
+      - "Supervisor de Ventas"
+      - "Key Account Manager"
+      - "Encargado de Ventas"
+
+  tier_3:
+    peso: 15
+    descripcion: >
+      Fallback. Solo para empresas medianas sin gerencia comercial dedicada.
+    cargos:
+      - "Dueño"
+      - "Socio"
+      - "Fundador"
+      - "Gerente General"
+      - "Director General"
+
+  excluidos:
+    descripcion: "Áreas sin potestad sobre la decisión comercial"
+    cargos:
+      - "RRHH"
+      - "Recursos Humanos"
+      - "Compras"
+      - "Operaciones"
+      - "Logística"
+      - "Contabilidad"
+      - "Finanzas"
+      - "Administración"
+      - "Legal"
+      - "Producto"
+
+# ---------------------------------------------------------------------------
+# Regla operacional de seniority
+# ---------------------------------------------------------------------------
+seniority:
+  regla: >
+    Mínimo: cargo con potestad de decisión propia, o con un solo nivel
+    de aprobación sobre ellos (dueño o director).
+  operacional: "Jefe o superior con reporte a Gerencia o Dirección"
+  excluir: "Ejecutivos de ventas sin cargo de jefatura"
+
+# ---------------------------------------------------------------------------
+# Calidad de los datos de contacto
+# ---------------------------------------------------------------------------
+calidad_contacto:
+  niveles:
+    - codigo: "oro"
+      simbolo: "🥇"
+      peso: 30
+      requisitos: ["nombre", "cargo", "empresa", "telefono", "email_directo", "linkedin"]
+    - codigo: "plata"
+      simbolo: "🥈"
+      peso: 20
+      requisitos_min: ["nombre", "cargo", "empresa"]
+      requisitos_uno_de: ["telefono", "email_directo"]
+    - codigo: "bronce"
+      simbolo: "🥉"
+      peso: 10
+      requisitos: ["nombre", "cargo", "empresa", "linkedin"]
+    - codigo: "descarte_email_generico"
+      simbolo: "❌"
+      peso: -100
+      descripcion: "Email genérico (contacto@, info@, ventas@) — NUNCA aceptar"
+      descarte_automatico: true
+
+  reglas:
+    email_directo_bloqueante: false
+    email_generico_aceptado: false
+    minimo_aceptable: "Nombre + Cargo + Empresa + (Teléfono O Email directo O LinkedIn)"
+    nota: >
+      Email directo es deseable pero NO bloqueante. Si no aparece, el lead
+      igual va a la lista siempre que tenga teléfono o LinkedIn.
+
+# ---------------------------------------------------------------------------
+# Blacklist
+# ---------------------------------------------------------------------------
+blacklist:
+  archivo: "inputs/blacklist.csv"
+  fuzzy_match:
+    enabled: true
+    score_minimo: 85
+    normalizacion:
+      - "lowercase"
+      - "sin_acentos"
+      - "sin_sufijos_legales"
+    sufijos_legales_a_remover:
+      - "sa de cv"
+      - "s.a. de c.v."
+      - "sapi de cv"
+      - "sapi"
+      - "s de rl"
+      - "s. de r.l."
+      - "srl"
+      - "sa"
+      - "s.a."
+      - "sc"
+      - "s.c."
+    accion_si_match: "descartar_y_logear_motivo"
+
+# ---------------------------------------------------------------------------
+# Contexto Gregario (afinar scoring cualitativo)
+# ---------------------------------------------------------------------------
+gregario:
+  encaja_mejor_con:
+    - "Equipos comerciales en terreno activos"
+    - "Volumen relevante de clientes o puntos de venta"
+    - "Complejidad territorial o de cobertura"
+    - "Uso o apertura a CRM y herramientas digitales"
+    - "Búsqueda de escalar operación comercial con tecnología y datos"
+  no_encaja_con:
+    - "Empresas muy pequeñas o sin estructura comercial definida"
+    - "Ventas 100% inbound o sin fuerza de ventas"
+    - "Empresas enormes con sistemas propios muy desarrollados"
+
+# ---------------------------------------------------------------------------
+# Cálculo final del score
+# ---------------------------------------------------------------------------
+scoring:
+  formula: "score_empresa + score_contacto_top + bonus_calidad_contacto"
+  rangos:
+    descarte: { min: -1000, max: 0 }
+    bronce:   { min: 1,     max: 49 }
+    plata:    { min: 50,    max: 79 }
+    oro:      { min: 80,    max: 1000 }
+  descartes_automaticos:
+    - "Empresa en blacklist (fuzzy_match >= 85)"
+    - "Empresa con menos de 50 empleados (estrato fuera de 51-100, 101-250, 251+)"
+    - "Empresa en rubros excluidos"
+    - "Único contacto con email genérico (contacto@, info@, ventas@)"
+    - "Cargo del contacto en lista de excluidos (RRHH, Compras, etc.)"
